@@ -19,31 +19,31 @@ from ..tool import require_module
 
 
 class SentenceTransformerFunctionBase:
-    """Base class for Sentence Transformer functions (both dense and sparse).
+    """Clase base para funciones de Sentence Transformer (densas y dispersas).
 
-    This base class provides common functionality for loading and managing
-    sentence-transformers models from Hugging Face or ModelScope. It supports
-    both dense models (e.g., all-MiniLM-L6-v2) and sparse models (e.g., SPLADE).
+    Esta clase base proporciona funcionalidades comunes para cargar y gestionar
+    modelos de sentence-transformers desde Hugging Face o ModelScope. Soporta
+    tanto modelos densos (p.ej., all-MiniLM-L6-v2) como dispersos (p.ej., SPLADE).
 
-    This class is not meant to be used directly. Use concrete implementations:
-    - ``SentenceTransformerEmbeddingFunction`` for dense embeddings
-    - ``SentenceTransformerSparseEmbeddingFunction`` for sparse embeddings
-    - ``DefaultDenseEmbedding`` for default dense embeddings
-    - ``DefaultSparseEmbedding`` for default sparse embeddings
+    Esta clase no está destinada a usarse directamente. Usa las implementaciones concretas:
+    - ``SentenceTransformerEmbeddingFunction`` para embeddings densos
+    - ``SentenceTransformerSparseEmbeddingFunction`` para embeddings dispersos
+    - ``DefaultDenseEmbedding`` para embeddings densos por defecto
+    - ``DefaultSparseEmbedding`` para embeddings dispersos por defecto
 
     Args:
-        model_name (str): Model identifier or local path.
-        model_source (Literal["huggingface", "modelscope"]): Model source.
-        device (Optional[str]): Device to run the model on.
-        trust_remote_code (bool): Whether to allow execution of custom model code
-            from the repository. Defaults to ``False``.
+        model_name (str): Identificador del modelo o ruta local.
+        model_source (Literal["huggingface", "modelscope"]): Fuente del modelo.
+        device (Optional[str]): Dispositivo en el que ejecutar el modelo.
+        trust_remote_code (bool): Si se permite la ejecución de código personalizado
+            del modelo desde el repositorio. Por defecto ``False``.
 
     Note:
-        - This is an internal base class for code reuse
-        - Subclasses should inherit from appropriate Protocol (Dense/Sparse)
-        - Provides model loading and management functionality
-        - ``trust_remote_code=True`` allows arbitrary Python code from a
-          downloaded model repository to execute; only enable for trusted models
+        - Esta es una clase base interna para reutilización de código
+        - Las subclases deben heredar del Protocol adecuado (Denso/Disperso)
+        - Proporciona funcionalidad de carga y gestión de modelos
+        - ``trust_remote_code=True`` permite que código Python arbitrario de un
+          repositorio de modelos descargado se ejecute; actívalo solo para modelos de confianza
     """
 
     def __init__(
@@ -53,24 +53,24 @@ class SentenceTransformerFunctionBase:
         device: Optional[str] = None,
         trust_remote_code: bool = False,
     ):
-        """Initialize the base Sentence Transformer functionality.
+        """Inicializa la funcionalidad base de Sentence Transformer.
 
         Args:
-            model_name (str): Model identifier or local path.
-            model_source (Literal["huggingface", "modelscope"]): Model source.
-            device (Optional[str]): Device to run the model on.
-            trust_remote_code (bool): Whether to allow execution of custom model
-                code from the repository. Defaults to ``False``.
+            model_name (str): Identificador del modelo o ruta local.
+            model_source (Literal["huggingface", "modelscope"]): Fuente del modelo.
+            device (Optional[str]): Dispositivo en el que ejecutar el modelo.
+            trust_remote_code (bool): Si se permite la ejecución de código
+                personalizado del modelo desde el repositorio. Por defecto ``False``.
 
                 .. warning::
-                    Setting this to ``True`` allows arbitrary Python code from a
-                    downloaded model repository to run on your machine.  Only
-                    enable it for models you explicitly trust.
+                    Establecer esto en ``True`` permite que código Python arbitrario de un
+                    repositorio de modelos descargado se ejecute en tu máquina. Solo
+                    actívalo para modelos en los que confíes explícitamente.
 
         Raises:
-            ValueError: If model_source is invalid.
+            ValueError: Si model_source no es válido.
         """
-        # Validate model_source
+        # Validar model_source
         if model_source not in ("huggingface", "modelscope"):
             raise ValueError(
                 f"Invalid model_source: '{model_source}'. "
@@ -85,54 +85,54 @@ class SentenceTransformerFunctionBase:
 
     @property
     def model_name(self) -> str:
-        """str: The Sentence Transformer model name currently in use."""
+        """str: El nombre del modelo Sentence Transformer actualmente en uso."""
         return self._model_name
 
     @property
     def model_source(self) -> str:
-        """str: The model source being used ("huggingface" or "modelscope")."""
+        """str: La fuente del modelo en uso ("huggingface" o "modelscope")."""
         return self._model_source
 
     @property
     def device(self) -> str:
-        """str: The device the model is running on."""
+        """str: El dispositivo en el que se ejecuta el modelo."""
         model = self._get_model()
         if model is not None:
             return str(model.device)
         return self._device or "cpu"
 
     def _get_model(self):
-        """Load or retrieve the Sentence Transformer model.
+        """Carga o recupera el modelo Sentence Transformer.
 
         Returns:
-            SentenceTransformer or SparseEncoder: The loaded model instance.
+            SentenceTransformer o SparseEncoder: La instancia del modelo cargada.
 
         Raises:
-            ImportError: If required packages are not installed.
-            ValueError: If model cannot be loaded.
+            ImportError: Si los paquetes requeridos no están instalados.
+            ValueError: Si el modelo no se puede cargar.
         """
-        # Return cached model if exists
+        # Retornar el modelo en caché si existe
         if self._model is not None:
             return self._model
 
-        # Load model
+        # Cargar el modelo
         try:
             sentence_transformers = require_module("sentence_transformers")
 
             if self._model_source == "modelscope":
-                # Load from ModelScope
+                # Cargar desde ModelScope
                 require_module("modelscope")
                 from modelscope.hub.snapshot_download import snapshot_download
 
-                # Download model to cache
+                # Descargar el modelo a caché
                 model_dir = snapshot_download(self._model_name)
 
-                # Load from local path
+                # Cargar desde ruta local
                 self._model = sentence_transformers.SentenceTransformer(
                     model_dir, device=self._device, trust_remote_code=self._trust_remote_code
                 )
             else:
-                # Load from Hugging Face (default)
+                # Cargar desde Hugging Face (predeterminado)
                 self._model = sentence_transformers.SentenceTransformer(
                     self._model_name, device=self._device, trust_remote_code=self._trust_remote_code
                 )
@@ -153,11 +153,11 @@ class SentenceTransformerFunctionBase:
             ) from e
 
     def _is_sparse_model(self) -> bool:
-        """Check if the loaded model is a sparse encoder (e.g., SPLADE).
+        """Verifica si el modelo cargado es un codificador disperso (p.ej., SPLADE).
 
         Returns:
-            bool: True if model supports sparse encoding.
+            bool: True si el modelo soporta codificación dispersa.
         """
         model = self._get_model()
-        # Check if model has sparse encoding methods
+        # Verificar si el modelo tiene métodos de codificación dispersa
         return hasattr(model, "encode_query") or hasattr(model, "encode_document")

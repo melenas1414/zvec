@@ -22,93 +22,95 @@ from .sentence_transformer_function import SentenceTransformerFunctionBase
 
 
 class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
-    """Re-ranker using Sentence Transformer cross-encoder models for semantic re-ranking.
+    """Re-clasificador usando modelos cross-encoder de Sentence Transformer para re-clasificación semántica.
 
-    This re-ranker leverages pre-trained cross-encoder models to perform deep semantic
-    re-ranking of search results. It runs locally without API calls, supports GPU
-    acceleration, and works with models from Hugging Face or ModelScope.
+    Este re-clasificador aprovecha modelos cross-encoder preentrenados para realizar
+    una re-clasificación semántica profunda de los resultados de búsqueda. Se ejecuta
+    localmente sin llamadas a API, soporta aceleración GPU y funciona con modelos de
+    Hugging Face o ModelScope.
 
-    Cross-encoder models evaluate query-document pairs jointly, providing more
-    accurate relevance scores than bi-encoder (embedding-based) similarity.
+    Los modelos cross-encoder evalúan pares consulta-documento de forma conjunta,
+    proporcionando puntuaciones de relevancia más precisas que la similitud basada en
+    bi-encoder (embedding).
 
     Args:
-        query (str): Query text for semantic re-ranking. **Required**.
-        topn (int, optional): Maximum number of documents to return after re-ranking.
-            Defaults to 10.
-        rerank_field (Optional[str], optional): Document field name to use as
-            re-ranking input text. **Required** (e.g., "content", "title", "body").
-        model_name (str, optional): Cross-encoder model identifier or local path.
-            Defaults to ``"cross-encoder/ms-marco-MiniLM-L6-v2"`` (MS MARCO MiniLM).
-            Common options:
-            - ``"cross-encoder/ms-marco-MiniLM-L6-v2"``: Lightweight, fast (~80MB, recommended)
-            - ``"cross-encoder/ms-marco-MiniLM-L12-v2"``: Better accuracy (~120MB)
+        query (str): Texto de consulta para la re-clasificación semántica. **Requerido**.
+        topn (int, optional): Número máximo de documentos a devolver tras la re-clasificación.
+            Por defecto 10.
+        rerank_field (Optional[str], optional): Nombre del campo del documento a usar como
+            texto de entrada para la re-clasificación. **Requerido** (p.ej., "content", "title", "body").
+        model_name (str, optional): Identificador del modelo cross-encoder o ruta local.
+            Por defecto ``"cross-encoder/ms-marco-MiniLM-L6-v2"`` (MS MARCO MiniLM).
+            Opciones comunes:
+            - ``"cross-encoder/ms-marco-MiniLM-L6-v2"``: Ligero, rápido (~80MB, recomendado)
+            - ``"cross-encoder/ms-marco-MiniLM-L12-v2"``: Mejor precisión (~120MB)
             - ``"BAAI/bge-reranker-base"``: BGE Reranker Base (~280MB)
-            - ``"BAAI/bge-reranker-large"``: BGE Reranker Large (highest quality, ~560MB)
-        model_source (Literal["huggingface", "modelscope"], optional): Model source.
-            Defaults to ``"huggingface"``.
-            - ``"huggingface"``: Load from Hugging Face Hub
-            - ``"modelscope"``: Load from ModelScope (recommended for users in China)
-        device (Optional[str], optional): Device to run the model on.
-            Options: ``"cpu"``, ``"cuda"``, ``"mps"`` (for Apple Silicon), or ``None``
-            for automatic detection. Defaults to ``None``.
-        batch_size (int, optional): Batch size for processing query-document pairs.
-            Larger values speed up processing but use more memory. Defaults to ``32``.
+            - ``"BAAI/bge-reranker-large"``: BGE Reranker Large (máxima calidad, ~560MB)
+        model_source (Literal["huggingface", "modelscope"], optional): Fuente del modelo.
+            Por defecto ``"huggingface"``.
+            - ``"huggingface"``: Cargar desde Hugging Face Hub
+            - ``"modelscope"``: Cargar desde ModelScope (recomendado para usuarios en China)
+        device (Optional[str], optional): Dispositivo en el que ejecutar el modelo.
+            Opciones: ``"cpu"``, ``"cuda"``, ``"mps"`` (para Apple Silicon) o ``None``
+            para detección automática. Por defecto ``None``.
+        batch_size (int, optional): Tamaño de lote para procesar pares consulta-documento.
+            Valores más grandes aceleran el proceso pero usan más memoria. Por defecto ``32``.
 
     Attributes:
-        query (str): The query text used for re-ranking.
-        topn (int): Maximum number of documents to return.
-        rerank_field (Optional[str]): Field name used for re-ranking input.
-        model_name (str): The cross-encoder model being used.
-        model_source (str): The model source ("huggingface" or "modelscope").
-        device (str): The device the model is running on.
+        query (str): El texto de consulta usado para la re-clasificación.
+        topn (int): Número máximo de documentos a devolver.
+        rerank_field (Optional[str]): Nombre del campo usado como entrada para re-clasificación.
+        model_name (str): El modelo cross-encoder en uso.
+        model_source (str): La fuente del modelo ("huggingface" o "modelscope").
+        device (str): El dispositivo en el que se ejecuta el modelo.
 
     Raises:
-        ValueError: If ``query`` is empty/None, ``rerank_field`` is None,
-            or model cannot be loaded.
-        TypeError: If input types are invalid.
-        RuntimeError: If model inference fails.
+        ValueError: Si ``query`` está vacío/es None, ``rerank_field`` es None
+            o el modelo no se puede cargar.
+        TypeError: Si los tipos de entrada no son válidos.
+        RuntimeError: Si la inferencia del modelo falla.
 
     Note:
-        - Requires Python 3.10, 3.11, or 3.12
-        - Requires ``sentence-transformers`` package: ``pip install sentence-transformers``
-        - For ModelScope support, also requires: ``pip install modelscope``
-        - First run downloads the model (~80-560MB depending on model) from chosen source
-        - No API keys or network required after initial download
-        - Cross-encoders are slower than bi-encoders but more accurate
-        - GPU acceleration provides significant speedup (5-10x)
+        - Requiere Python 3.10, 3.11 o 3.12
+        - Requiere el paquete ``sentence-transformers``: ``pip install sentence-transformers``
+        - Para soporte de ModelScope, también requiere: ``pip install modelscope``
+        - La primera ejecución descarga el modelo (~80-560MB según el modelo) desde la fuente elegida
+        - No se requieren claves de API ni red tras la descarga inicial
+        - Los cross-encoders son más lentos que los bi-encoders pero más precisos
+        - La aceleración GPU proporciona una mejora significativa de velocidad (5-10x)
 
-        **MS MARCO MiniLM-L6-v2 Model (Default):**
+        **Modelo MS MARCO MiniLM-L6-v2 (predeterminado):**
 
-        The default model ``cross-encoder/ms-marco-MiniLM-L6-v2`` is a lightweight and
-        efficient cross-encoder trained on MS MARCO dataset. It provides:
+        El modelo por defecto ``cross-encoder/ms-marco-MiniLM-L6-v2`` es un cross-encoder
+        ligero y eficiente entrenado en el dataset MS MARCO. Ofrece:
 
-        - Fast inference speed (suitable for real-time applications)
-        - Small model size (~80MB, quick to download)
-        - Good balance between speed and accuracy
-        - Trained on 500K+ query-document pairs
-        - Public availability without authentication
+        - Velocidad de inferencia rápida (adecuada para aplicaciones en tiempo real)
+        - Tamaño de modelo pequeño (~80MB, descarga rápida)
+        - Buen equilibrio entre velocidad y precisión
+        - Entrenado en más de 500K pares consulta-documento
+        - Disponibilidad pública sin autenticación
 
-        **For users in China:**
+        **Para usuarios en China:**
 
-        If you encounter Hugging Face access issues, use ModelScope instead:
+        Si encuentras problemas de acceso a Hugging Face, usa ModelScope:
 
         .. code-block:: python
 
-            # Recommended for users in China
+            # Recomendado para usuarios en China
             reranker = SentenceTransformerReRanker(
                 query="机器学习算法",
                 rerank_field="content",
                 model_source="modelscope"
             )
 
-        Alternatively, use Hugging Face mirror:
+        Alternativamente, usa el espejo de Hugging Face:
 
         .. code-block:: bash
 
             export HF_ENDPOINT=https://hf-mirror.com
 
     Examples:
-        >>> # Basic usage with default MS MARCO MiniLM model
+        >>> # Uso básico con el modelo MS MARCO MiniLM predeterminado
         >>> from zvec.extension import SentenceTransformerReRanker
         >>>
         >>> reranker = SentenceTransformerReRanker(
@@ -117,14 +119,14 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         ...     rerank_field="content"
         ... )
         >>>
-        >>> # Use in collection.query()
+        >>> # Usar en collection.query()
         >>> results = collection.query(
         ...     data={"vector_field": query_vector},
         ...     reranker=reranker,
         ...     topk=20
         ... )
 
-        >>> # Using ModelScope for users in China
+        >>> # Usando ModelScope para usuarios en China
         >>> reranker = SentenceTransformerReRanker(
         ...     query="深度学习",
         ...     topn=10,
@@ -132,7 +134,7 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         ...     model_source="modelscope"
         ... )
 
-        >>> # Using larger model for better quality
+        >>> # Usando modelo más grande para mejor calidad
         >>> reranker = SentenceTransformerReRanker(
         ...     query="neural networks",
         ...     topn=5,
@@ -142,7 +144,7 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         ...     batch_size=64
         ... )
 
-        >>> # Direct rerank call (for testing)
+        >>> # Llamada directa de rerank (para pruebas)
         >>> query_results = {
         ...     "vector1": [
         ...         Doc(id="1", score=0.9, fields={"content": "Machine learning is..."}),
@@ -156,10 +158,10 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         ID: 1, Score: 0.8567
 
     See Also:
-        - ``RerankFunction``: Abstract base class for re-rankers
-        - ``QwenReRanker``: Re-ranker using Qwen API
-        - ``RrfReRanker``: Multi-vector re-ranker using RRF
-        - ``WeightedReRanker``: Multi-vector re-ranker using weighted scores
+        - ``RerankFunction``: Clase base abstracta para re-clasificadores
+        - ``QwenReRanker``: Re-clasificador usando la API de Qwen
+        - ``RrfReRanker``: Re-clasificador multi-vector usando RRF
+        - ``WeightedReRanker``: Re-clasificador multi-vector usando puntuaciones ponderadas
 
     References:
         - MS MARCO Cross-Encoder: https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2
@@ -178,28 +180,28 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         batch_size: int = 32,
         trust_remote_code: bool = False,
     ):
-        """Initialize SentenceTransformerReRanker with query and configuration.
+        """Inicializa SentenceTransformerReRanker con consulta y configuración.
 
         Args:
-            query (Optional[str]): Query text for semantic matching. Required.
-            topn (int): Number of top results to return.
-            rerank_field (Optional[str]): Document field for re-ranking input.
-            model_name (str): Cross-encoder model identifier.
-            model_source (Literal["huggingface", "modelscope"]): Model source.
-            device (Optional[str]): Target device ("cpu", "cuda", "mps", or None).
-            batch_size (int): Batch size for processing query-document pairs.
-            trust_remote_code (bool): Whether to allow execution of custom model
-                code from the repository. Defaults to ``False``.
+            query (Optional[str]): Texto de consulta para la correspondencia semántica. Requerido.
+            topn (int): Número de resultados principales a devolver.
+            rerank_field (Optional[str]): Campo del documento para la entrada de re-clasificación.
+            model_name (str): Identificador del modelo cross-encoder.
+            model_source (Literal["huggingface", "modelscope"]): Fuente del modelo.
+            device (Optional[str]): Dispositivo destino ("cpu", "cuda", "mps" o None).
+            batch_size (int): Tamaño de lote para procesar pares consulta-documento.
+            trust_remote_code (bool): Si se permite la ejecución de código personalizado
+                del modelo desde el repositorio. Por defecto ``False``.
 
                 .. warning::
-                    Setting this to ``True`` allows arbitrary Python code from a
-                    downloaded model repository to run on your machine.  Only
-                    enable it for models you explicitly trust.
+                    Establecer esto en ``True`` permite que código Python arbitrario de un
+                    repositorio de modelos descargado se ejecute en tu máquina. Solo
+                    actívalo para modelos en los que confíes explícitamente.
 
         Raises:
-            ValueError: If query is empty or model cannot be loaded.
+            ValueError: Si la consulta está vacía o el modelo no se puede cargar.
         """
-        # Initialize base class for model loading
+        # Inicializar la clase base para la carga del modelo
         SentenceTransformerFunctionBase.__init__(
             self,
             model_name=model_name,
@@ -208,16 +210,16 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
             trust_remote_code=trust_remote_code,
         )
 
-        # Initialize rerank function
+        # Inicializar la función de re-clasificación
         RerankFunction.__init__(self, topn=topn, rerank_field=rerank_field)
 
-        # Validate query
+        # Validar la consulta
         if not query:
             raise ValueError("Query is required for DefaultLocalReRanker")
         self._query = query
         self._batch_size = batch_size
 
-        # Load and validate cross-encoder model
+        # Cargar y validar el modelo cross-encoder
         model = self._get_model()
         if not hasattr(model, "predict"):
             raise ValueError(
@@ -227,40 +229,40 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         self._model = model
 
     def _get_model(self):
-        """Load or retrieve the CrossEncoder model.
+        """Carga o recupera el modelo CrossEncoder.
 
-        This overrides the base class method to load CrossEncoder instead of
-        SentenceTransformer, as reranking requires cross-encoder models.
+        Este método sobreescribe el de la clase base para cargar CrossEncoder en lugar
+        de SentenceTransformer, ya que la re-clasificación requiere modelos cross-encoder.
 
         Returns:
-            CrossEncoder: The loaded cross-encoder model instance.
+            CrossEncoder: La instancia del modelo cross-encoder cargada.
 
         Raises:
-            ImportError: If required packages are not installed.
-            ValueError: If model cannot be loaded.
+            ImportError: Si los paquetes requeridos no están instalados.
+            ValueError: Si el modelo no se puede cargar.
         """
-        # Return cached model if exists
+        # Retornar el modelo en caché si existe
         if self._model is not None:
             return self._model
 
-        # Load cross-encoder model
+        # Cargar el modelo cross-encoder
         try:
             sentence_transformers = require_module("sentence_transformers")
 
             if self._model_source == "modelscope":
-                # Load from ModelScope
+                # Cargar desde ModelScope
                 require_module("modelscope")
                 from modelscope.hub.snapshot_download import snapshot_download
 
-                # Download model to cache
+                # Descargar el modelo a caché
                 model_dir = snapshot_download(self._model_name)
 
-                # Load CrossEncoder from local path
+                # Cargar CrossEncoder desde ruta local
                 model = sentence_transformers.CrossEncoder(
                     model_dir, device=self._device
                 )
             else:
-                # Load CrossEncoder from Hugging Face (default)
+                # Cargar CrossEncoder desde Hugging Face (predeterminado)
                 model = sentence_transformers.CrossEncoder(
                     self._model_name,
                     device=self._device,
@@ -284,39 +286,39 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
 
     @property
     def query(self) -> str:
-        """str: Query text used for semantic re-ranking."""
+        """str: Texto de consulta usado para la re-clasificación semántica."""
         return self._query
 
     @property
     def batch_size(self) -> int:
-        """int: Batch size for processing query-document pairs."""
+        """int: Tamaño de lote para procesar pares consulta-documento."""
         return self._batch_size
 
     def rerank(self, query_results: dict[str, list[Doc]]) -> list[Doc]:
-        """Re-rank documents using Sentence Transformer cross-encoder model.
+        """Re-clasifica documentos usando el modelo cross-encoder de Sentence Transformer.
 
-        Evaluates each query-document pair using the cross-encoder model to compute
-        relevance scores. Documents are then sorted by these scores and the top-k
-        results are returned.
+        Evalúa cada par consulta-documento usando el modelo cross-encoder para calcular
+        puntuaciones de relevancia. Los documentos se ordenan luego por estas puntuaciones
+        y se devuelven los k mejores resultados.
 
         Args:
-            query_results (dict[str, list[Doc]]): Mapping from vector field names
-                to lists of retrieved documents. Documents from all fields are
-                deduplicated and re-ranked together.
+            query_results (dict[str, list[Doc]]): Mapeo de nombres de campos vectoriales
+                a listas de documentos recuperados. Los documentos de todos los campos se
+                deduplicaran y re-clasificarán juntos.
 
         Returns:
-            list[Doc]: Re-ranked documents (up to ``topn``) with updated ``score``
-                fields containing relevance scores from the cross-encoder model.
+            list[Doc]: Documentos re-clasificados (hasta ``topn``) con campos ``score``
+                actualizados que contienen las puntuaciones de relevancia del modelo cross-encoder.
 
         Raises:
-            ValueError: If no valid documents are found or model inference fails.
+            ValueError: Si no se encuentran documentos válidos o la inferencia del modelo falla.
 
         Note:
-            - Duplicate documents (same ID) across fields are processed once
-            - Documents with empty/missing ``rerank_field`` content are skipped
-            - Returned scores are logits from the cross-encoder model
-            - Higher scores indicate higher relevance
-            - Processing time is O(n) where n is the number of documents
+            - Los documentos duplicados (mismo ID) entre campos se procesan una vez
+            - Los documentos con contenido vacío o ausente en ``rerank_field`` se omiten
+            - Las puntuaciones devueltas son logits del modelo cross-encoder
+            - Las puntuaciones más altas indican mayor relevancia
+            - El tiempo de procesamiento es O(n) donde n es el número de documentos
 
         Examples:
             >>> reranker = SentenceTransformerReRanker(
@@ -337,7 +339,7 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         if not query_results:
             return []
 
-        # Collect and deduplicate documents
+        # Recopilar y deduplicar documentos
         id_to_doc: dict[str, Doc] = {}
         doc_ids: list[str] = []
         contents: list[str] = []
@@ -348,7 +350,7 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
                 if doc_id in id_to_doc:
                     continue
 
-                # Extract text content from specified field
+                # Extraer contenido de texto del campo especificado
                 field_value = doc.field(self.rerank_field)
                 rank_content = str(field_value).strip() if field_value else ""
                 if not rank_content:
@@ -362,7 +364,7 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
             raise ValueError("No documents to rerank")
 
         try:
-            # Use standard cross-encoder predict method
+            # Usar el método predict estándar del cross-encoder
             pairs = [[self.query, content] for content in contents]
             scores = self._model.predict(
                 pairs,
@@ -371,7 +373,7 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
                 convert_to_numpy=True,
             )
 
-            # Convert to float list if needed
+            # Convertir a lista de flotantes si es necesario
             if hasattr(scores, "tolist"):
                 scores = scores.tolist()
             else:
@@ -380,16 +382,16 @@ class DefaultLocalReRanker(SentenceTransformerFunctionBase, RerankFunction):
         except Exception as e:
             raise RuntimeError(f"Failed to compute rerank scores: {e!s}") from e
 
-        # Create scored documents
+        # Crear documentos con puntuación
         scored_docs = [
             (doc_ids[i], id_to_doc[doc_ids[i]], scores[i]) for i in range(len(doc_ids))
         ]
 
-        # Sort by score (descending) and take top-k
+        # Ordenar por puntuación (descendente) y tomar los k mejores
         scored_docs.sort(key=lambda x: x[2], reverse=True)
         top_scored_docs = scored_docs[: self.topn]
 
-        # Build result list with updated scores
+        # Construir lista de resultados con puntuaciones actualizadas
         results: list[Doc] = []
         for _, doc, score in top_scored_docs:
             new_doc = doc._replace(score=score)
