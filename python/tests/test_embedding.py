@@ -838,7 +838,7 @@ class TestDefaultLocalDenseEmbedding:
         assert emb_func.model_source == "huggingface"
         assert emb_func.device == "cpu"
         mock_st.SentenceTransformer.assert_called_once_with(
-            "all-MiniLM-L6-v2", device=None, trust_remote_code=True
+            "all-MiniLM-L6-v2", device=None, trust_remote_code=False
         )
 
     @patch("zvec.extension.sentence_transformer_function.require_module")
@@ -855,7 +855,7 @@ class TestDefaultLocalDenseEmbedding:
 
         assert emb_func.device == "cuda"
         mock_st.SentenceTransformer.assert_called_once_with(
-            "all-MiniLM-L6-v2", device="cuda", trust_remote_code=True
+            "all-MiniLM-L6-v2", device="cuda", trust_remote_code=False
         )
 
     @pytest.mark.skipif(
@@ -1218,7 +1218,7 @@ class TestDefaultLocalSparseEmbedding:
         mock_st.SentenceTransformer.assert_called_once_with(
             "naver/splade-cocondenser-ensembledistil",
             device=None,
-            trust_remote_code=True,
+            trust_remote_code=False,
         )
 
     @patch("zvec.extension.sentence_transformer_function.require_module")
@@ -1236,7 +1236,7 @@ class TestDefaultLocalSparseEmbedding:
         mock_st.SentenceTransformer.assert_called_once_with(
             "naver/splade-cocondenser-ensembledistil",
             device="cuda",
-            trust_remote_code=True,
+            trust_remote_code=False,
         )
 
     @pytest.mark.skipif(

@@ -25,73 +25,73 @@ from .sentence_transformer_function import SentenceTransformerFunctionBase
 class DefaultLocalDenseEmbedding(
     SentenceTransformerFunctionBase, DenseEmbeddingFunction[TEXT]
 ):
-    """Default local dense embedding using all-MiniLM-L6-v2 model.
+    """Embedding denso local por defecto usando el modelo all-MiniLM-L6-v2.
 
-    This is the default implementation for dense text embedding that uses the
-    ``all-MiniLM-L6-v2`` model from Hugging Face by default. This model provides
-    a good balance between speed and quality for general-purpose text embedding.
+    Esta es la implementación por defecto para embedding de texto denso que utiliza
+    el modelo ``all-MiniLM-L6-v2`` de Hugging Face por defecto. Este modelo proporciona
+    un buen equilibrio entre velocidad y calidad para el embedding de texto de propósito general.
 
-    The class provides text-to-vector dense embedding capabilities using the
-    sentence-transformers library. It supports models from Hugging Face Hub and
-    ModelScope, runs locally without API calls, and supports CPU/GPU acceleration.
+    La clase proporciona capacidades de embedding denso de texto a vector usando la
+    librería sentence-transformers. Soporta modelos de Hugging Face Hub y ModelScope,
+    se ejecuta localmente sin llamadas a API y soporta aceleración CPU/GPU.
 
-    The model produces 384-dimensional embeddings and is optimized for semantic
-    similarity tasks. It runs locally without requiring API keys.
+    El modelo produce embeddings de 384 dimensiones y está optimizado para tareas de
+    similitud semántica. Se ejecuta localmente sin requerir claves de API.
 
     Args:
-        model_source (Literal["huggingface", "modelscope"], optional): Model source.
-            - ``"huggingface"``: Use Hugging Face Hub (default, for international users)
-            - ``"modelscope"``: Use ModelScope (recommended for users in China)
-            Defaults to ``"huggingface"``.
-        device (Optional[str], optional): Device to run the model on.
-            Options: ``"cpu"``, ``"cuda"``, ``"mps"`` (for Apple Silicon), or ``None``
-            for automatic detection. Defaults to ``None``.
-        normalize_embeddings (bool, optional): Whether to normalize embeddings to
-            unit length (L2 normalization). Useful for cosine similarity.
-            Defaults to ``True``.
-        batch_size (int, optional): Batch size for encoding. Defaults to ``32``.
-        **kwargs: Additional parameters for future extension.
+        model_source (Literal["huggingface", "modelscope"], optional): Fuente del modelo.
+            - ``"huggingface"``: Usar Hugging Face Hub (predeterminado, para usuarios internacionales)
+            - ``"modelscope"``: Usar ModelScope (recomendado para usuarios en China)
+            Por defecto ``"huggingface"``.
+        device (Optional[str], optional): Dispositivo en el que ejecutar el modelo.
+            Opciones: ``"cpu"``, ``"cuda"``, ``"mps"`` (para Apple Silicon) o ``None``
+            para detección automática. Por defecto ``None``.
+        normalize_embeddings (bool, optional): Si se normalizan los embeddings a
+            longitud unitaria (normalización L2). Útil para similitud coseno.
+            Por defecto ``True``.
+        batch_size (int, optional): Tamaño de lote para la codificación. Por defecto ``32``.
+        **kwargs: Parámetros adicionales para extensión futura.
 
     Attributes:
-        dimension (int): Always 384 for both models.
-        model_name (str): "all-MiniLM-L6-v2" (HF) or "iic/nlp_gte_sentence-embedding_chinese-small" (MS).
-        model_source (str): The model source being used.
-        device (str): The device the model is running on.
+        dimension (int): Siempre 384 para ambos modelos.
+        model_name (str): "all-MiniLM-L6-v2" (HF) o "iic/nlp_gte_sentence-embedding_chinese-small" (MS).
+        model_source (str): La fuente del modelo en uso.
+        device (str): El dispositivo en el que se ejecuta el modelo.
 
     Raises:
-        ValueError: If the model cannot be loaded or input is invalid.
-        TypeError: If input to ``embed()`` is not a string.
-        RuntimeError: If model inference fails.
+        ValueError: Si el modelo no se puede cargar o la entrada no es válida.
+        TypeError: Si la entrada de ``embed()`` no es una cadena.
+        RuntimeError: Si la inferencia del modelo falla.
 
     Note:
-        - Requires Python 3.10, 3.11, or 3.12
-        - Requires the ``sentence-transformers`` package:
+        - Requiere Python 3.10, 3.11 o 3.12
+        - Requiere el paquete ``sentence-transformers``:
           ``pip install sentence-transformers``
-        - For ModelScope, also requires: ``pip install modelscope``
-        - First run downloads the model (~50-80MB) from chosen source
-        - Hugging Face cache: ``~/.cache/torch/sentence_transformers/``
-        - ModelScope cache: ``~/.cache/modelscope/hub/``
-        - No API keys or network required after initial download
-        - Inference speed: ~1000 sentences/sec on CPU, ~10000 on GPU
+        - Para ModelScope, también requiere: ``pip install modelscope``
+        - La primera ejecución descarga el modelo (~50-80MB) desde la fuente elegida
+        - Caché de Hugging Face: ``~/.cache/torch/sentence_transformers/``
+        - Caché de ModelScope: ``~/.cache/modelscope/hub/``
+        - No se requieren claves de API ni red tras la descarga inicial
+        - Velocidad de inferencia: ~1000 frases/seg en CPU, ~10000 en GPU
 
-        **For users in China:**
+        **Para usuarios en China:**
 
-        If you encounter Hugging Face access issues, use ModelScope instead:
+        Si encuentras problemas de acceso a Hugging Face, usa ModelScope:
 
         .. code-block:: python
 
-            # Recommended for users in China
+            # Recomendado para usuarios en China
             emb = DefaultLocalDenseEmbedding(model_source="modelscope")
 
-        Alternatively, use Hugging Face mirror:
+        Alternativamente, usa el espejo de Hugging Face:
 
         .. code-block:: bash
 
             export HF_ENDPOINT=https://hf-mirror.com
-            # Then use default Hugging Face mode
+            # Luego usa el modo predeterminado de Hugging Face
 
     Examples:
-        >>> # Basic usage with Hugging Face (default)
+        >>> # Uso básico con Hugging Face (predeterminado)
         >>> from zvec.extension import DefaultLocalDenseEmbedding
         >>>
         >>> emb_func = DefaultLocalDenseEmbedding()
@@ -101,27 +101,27 @@ class DefaultLocalDenseEmbedding(
         >>> isinstance(vector, list)
         True
 
-        >>> # Recommended for users in China (uses ModelScope)
+        >>> # Recomendado para usuarios en China (usa ModelScope)
         >>> emb_func = DefaultLocalDenseEmbedding(model_source="modelscope")
-        >>> vector = emb_func.embed("你好，世界！")  # Works well with Chinese text
+        >>> vector = emb_func.embed("你好，世界！")  # Funciona bien con texto en chino
         >>> len(vector)
         384
 
-        >>> # Alternative for China users: Use Hugging Face mirror
+        >>> # Alternativa para usuarios en China: usar espejo de Hugging Face
         >>> import os
         >>> os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
-        >>> emb_func = DefaultLocalDenseEmbedding()  # Uses HF mirror
+        >>> emb_func = DefaultLocalDenseEmbedding()  # Usa el espejo de HF
         >>> vector = emb_func.embed("Hello, world!")
 
-        >>> # Using GPU for faster inference
+        >>> # Usar GPU para inferencia más rápida
         >>> emb_func = DefaultLocalDenseEmbedding(device="cuda")
         >>> vector = emb_func("Machine learning is fascinating")
-        >>> # Normalized vector has unit length
+        >>> # El vector normalizado tiene longitud unitaria
         >>> import numpy as np
         >>> np.linalg.norm(vector)
         1.0
 
-        >>> # Batch processing
+        >>> # Procesamiento por lotes
         >>> texts = ["First text", "Second text", "Third text"]
         >>> vectors = [emb_func.embed(text) for text in texts]
         >>> len(vectors)
@@ -129,26 +129,26 @@ class DefaultLocalDenseEmbedding(
         >>> all(len(v) == 384 for v in vectors)
         True
 
-        >>> # Semantic similarity
+        >>> # Similitud semántica
         >>> v1 = emb_func.embed("The cat sits on the mat")
         >>> v2 = emb_func.embed("A feline rests on a rug")
         >>> v3 = emb_func.embed("Python programming")
-        >>> similarity_high = np.dot(v1, v2)  # Similar sentences
-        >>> similarity_low = np.dot(v1, v3)   # Different topics
+        >>> similarity_high = np.dot(v1, v2)  # Frases similares
+        >>> similarity_low = np.dot(v1, v3)   # Temas diferentes
         >>> similarity_high > similarity_low
         True
 
-        >>> # Error handling
+        >>> # Manejo de errores
         >>> try:
-        ...     emb_func.embed("")  # Empty string
+        ...     emb_func.embed("")  # Cadena vacía
         ... except ValueError as e:
         ...     print(f"Error: {e}")
         Error: Input text cannot be empty or whitespace only
 
     See Also:
-        - ``DenseEmbeddingFunction``: Base class for dense embeddings
-        - ``DefaultLocalSparseEmbedding``: Sparse embedding with SPLADE
-        - ``QwenDenseEmbedding``: Alternative using Qwen API
+        - ``DenseEmbeddingFunction``: Clase base para embeddings densos
+        - ``DefaultLocalSparseEmbedding``: Embedding disperso con SPLADE
+        - ``QwenDenseEmbedding``: Alternativa usando la API de Qwen
     """
 
     def __init__(
@@ -157,82 +157,94 @@ class DefaultLocalDenseEmbedding(
         device: Optional[str] = None,
         normalize_embeddings: bool = True,
         batch_size: int = 32,
+        trust_remote_code: bool = False,
         **kwargs,
     ):
-        """Initialize with all-MiniLM-L6-v2 model.
+        """Inicializa con el modelo all-MiniLM-L6-v2.
 
         Args:
-            model_source (Literal["huggingface", "modelscope"]): Model source.
-                Defaults to "huggingface".
-            device (Optional[str]): Target device ("cpu", "cuda", "mps", or None).
-                Defaults to None (automatic detection).
-            normalize_embeddings (bool): Whether to L2-normalize output vectors.
-                Defaults to True.
-            batch_size (int): Batch size for encoding. Defaults to 32.
-            **kwargs: Additional parameters for future extension.
+            model_source (Literal["huggingface", "modelscope"]): Fuente del modelo.
+                Por defecto "huggingface".
+            device (Optional[str]): Dispositivo destino ("cpu", "cuda", "mps" o None).
+                Por defecto None (detección automática).
+            normalize_embeddings (bool): Si se normalizan los vectores de salida (L2).
+                Por defecto True.
+            batch_size (int): Tamaño de lote para la codificación. Por defecto 32.
+            trust_remote_code (bool): Si se permite la ejecución de código personalizado
+                del modelo desde el repositorio. Por defecto ``False``.
+
+                .. warning::
+                    Establecer esto en ``True`` permite que código Python arbitrario de un
+                    repositorio de modelos descargado se ejecute en tu máquina. Solo
+                    actívalo para modelos en los que confíes explícitamente.
+            **kwargs: Parámetros adicionales para extensión futura.
 
         Raises:
-            ImportError: If sentence-transformers or modelscope is not installed.
-            ValueError: If model cannot be loaded.
+            ImportError: Si sentence-transformers o modelscope no están instalados.
+            ValueError: Si el modelo no se puede cargar.
         """
-        # Use different models based on source
+        # Usar diferentes modelos según la fuente
         if model_source == "modelscope":
-            # Use Chinese-optimized model for ModelScope (better for Chinese text)
+            # Usar modelo optimizado para chino en ModelScope (mejor para texto chino)
             model_name = "iic/nlp_gte_sentence-embedding_chinese-small"
         else:
             model_name = "all-MiniLM-L6-v2"
 
-        # Initialize base class for model loading
+        # Inicializar la clase base para la carga del modelo
         SentenceTransformerFunctionBase.__init__(
-            self, model_name=model_name, model_source=model_source, device=device
+            self,
+            model_name=model_name,
+            model_source=model_source,
+            device=device,
+            trust_remote_code=trust_remote_code,
         )
 
         self._normalize_embeddings = normalize_embeddings
         self._batch_size = batch_size
 
-        # Load model and get dimension
+        # Cargar el modelo y obtener la dimensión
         model = self._get_model()
         self._dimension = model.get_sentence_embedding_dimension()
 
-        # Store extra parameters
+        # Almacenar parámetros adicionales
         self._extra_params = kwargs
 
     @property
     def dimension(self) -> int:
-        """int: The expected dimensionality of the embedding vector."""
+        """int: La dimensionalidad esperada del vector de embedding."""
         return self._dimension
 
     @property
     def extra_params(self) -> dict:
-        """dict: Extra parameters for model-specific customization."""
+        """dict: Parámetros adicionales para la personalización específica del modelo."""
         return self._extra_params
 
     def __call__(self, input: str) -> DenseVectorType:
-        """Make the embedding function callable."""
+        """Hace que la función de embedding sea invocable."""
         return self.embed(input)
 
     def embed(self, input: str) -> DenseVectorType:
-        """Generate dense embedding vector for the input text.
+        """Genera el vector de embedding denso para el texto de entrada.
 
-        This method uses the Sentence Transformer model to convert input text
-        into a dense vector representation. The model runs locally without
-        requiring API calls.
+        Este método usa el modelo Sentence Transformer para convertir el texto de
+        entrada en una representación vectorial densa. El modelo se ejecuta localmente
+        sin requerir llamadas a API.
 
         Args:
-            input (str): Input text string to embed. Must be non-empty after
-                stripping whitespace. Maximum length depends on the model used
-                (typically 128-512 tokens for most models).
+            input (str): Cadena de texto de entrada a embeber. Debe ser no vacía tras
+                eliminar espacios. La longitud máxima depende del modelo usado
+                (típicamente 128-512 tokens para la mayoría de modelos).
 
         Returns:
-            DenseVectorType: A list of floats representing the embedding vector.
-                Length equals ``self.dimension``. If ``normalize_embeddings=True``,
-                the vector has unit length. Example:
+            DenseVectorType: Una lista de flotantes que representa el vector de embedding.
+                La longitud es igual a ``self.dimension``. Si ``normalize_embeddings=True``,
+                el vector tiene longitud unitaria. Ejemplo:
                 ``[0.123, -0.456, 0.789, ...]``
 
         Raises:
-            TypeError: If ``input`` is not a string.
-            ValueError: If input is empty or whitespace-only.
-            RuntimeError: If model inference fails.
+            TypeError: Si ``input`` no es una cadena.
+            ValueError: Si la entrada está vacía o contiene solo espacios en blanco.
+            RuntimeError: Si la inferencia del modelo falla.
 
         Examples:
             >>> emb = DefaultLocalDenseEmbedding()
@@ -242,34 +254,34 @@ class DefaultLocalDenseEmbedding(
             >>> isinstance(vector[0], float)
             True
 
-            >>> # Normalized vectors have unit length
+            >>> # Los vectores normalizados tienen longitud unitaria
             >>> import numpy as np
             >>> emb = DefaultLocalDenseEmbedding(normalize_embeddings=True)
             >>> vector = emb.embed("Test sentence")
             >>> np.linalg.norm(vector)
             1.0
 
-            >>> # Error: empty input
+            >>> # Error: entrada vacía
             >>> emb.embed("   ")
             ValueError: Input text cannot be empty or whitespace only
 
-            >>> # Error: non-string input
+            >>> # Error: entrada que no es cadena
             >>> emb.embed(123)
             TypeError: Expected 'input' to be str, got int
 
-            >>> # Semantic similarity example
+            >>> # Ejemplo de similitud semántica
             >>> v1 = emb.embed("The cat sits on the mat")
             >>> v2 = emb.embed("A feline rests on a rug")
-            >>> similarity = np.dot(v1, v2)  # High similarity due to semantic meaning
+            >>> similarity = np.dot(v1, v2)  # Alta similitud por significado semántico
             >>> similarity > 0.7
             True
 
         Note:
-            - First call may be slower due to model loading
-            - Subsequent calls are much faster as the model stays in memory
-            - For batch processing, consider encoding multiple texts together
-              (though this method handles single texts only)
-            - GPU acceleration provides 5-10x speedup over CPU
+            - La primera llamada puede ser más lenta por la carga del modelo
+            - Las llamadas siguientes son mucho más rápidas ya que el modelo permanece en memoria
+            - Para procesamiento por lotes, considera codificar varios textos juntos
+              (aunque este método solo maneja textos individuales)
+            - La aceleración GPU proporciona una mejora de velocidad de 5-10x sobre CPU
         """
         if not isinstance(input, str):
             raise TypeError(f"Expected 'input' to be str, got {type(input).__name__}")
@@ -287,13 +299,13 @@ class DefaultLocalDenseEmbedding(
                 batch_size=self._batch_size,
             )
 
-            # Convert numpy array to list
+            # Convertir array numpy a lista
             if isinstance(embedding, np.ndarray):
                 embedding_list = embedding.tolist()
             else:
                 embedding_list = list(embedding)
 
-            # Validate dimension
+            # Validar dimensión
             if len(embedding_list) != self.dimension:
                 raise ValueError(
                     f"Dimension mismatch: expected {self.dimension}, "
@@ -311,151 +323,150 @@ class DefaultLocalDenseEmbedding(
 class DefaultLocalSparseEmbedding(
     SentenceTransformerFunctionBase, SparseEmbeddingFunction[TEXT]
 ):
-    """Default local sparse embedding using SPLADE model.
+    """Embedding disperso local por defecto usando el modelo SPLADE.
 
-    This class provides sparse vector embedding using the SPLADE (SParse Lexical
-    AnD Expansion) model. SPLADE generates sparse, interpretable representations
-    where each dimension corresponds to a vocabulary term with learned importance
-    weights. It's ideal for lexical matching, BM25-style retrieval, and hybrid
-    search scenarios.
+    Esta clase proporciona embedding de vectores dispersos usando el modelo SPLADE
+    (SParse Lexical AnD Expansion). SPLADE genera representaciones dispersas e
+    interpretables donde cada dimensión corresponde a un término del vocabulario con
+    pesos de importancia aprendidos. Es ideal para búsqueda léxica, recuperación
+    estilo BM25 y escenarios de búsqueda híbrida.
 
-    The default model is ``naver/splade-cocondenser-ensembledistil``, which is
-    publicly available without authentication. It produces sparse vectors with
-    thousands of dimensions but only hundreds of non-zero values, making them
-    efficient for storage and retrieval while maintaining strong lexical matching.
+    El modelo por defecto es ``naver/splade-cocondenser-ensembledistil``, disponible
+    públicamente sin autenticación. Produce vectores dispersos con miles de dimensiones
+    pero solo cientos de valores distintos de cero, lo que los hace eficientes para
+    almacenamiento y recuperación manteniendo una fuerte correspondencia léxica.
 
-    **Model Caching:**
+    **Caché de modelos:**
 
-    This class uses class-level caching to share the SPLADE model across all instances
-    with the same configuration (model_source, device). This significantly reduces
-    memory usage when creating multiple instances for different encoding types
-    (query vs document).
+    Esta clase usa caché a nivel de clase para compartir el modelo SPLADE entre todas las
+    instancias con la misma configuración (model_source, device). Esto reduce
+    significativamente el uso de memoria al crear múltiples instancias para distintos
+    tipos de codificación (consulta vs documento).
 
-    **Cache Management:**
+    **Gestión de caché:**
 
-    The class provides methods to manage the model cache:
+    La clase proporciona métodos para gestionar la caché del modelo:
 
-    - ``clear_cache()``: Clear all cached models to free memory
-    - ``get_cache_info()``: Get information about cached models
-    - ``remove_from_cache(model_source, device)``: Remove a specific model from cache
+    - ``clear_cache()``: Limpiar todos los modelos en caché para liberar memoria
+    - ``get_cache_info()``: Obtener información sobre los modelos en caché
+    - ``remove_from_cache(model_source, device)``: Eliminar un modelo específico de la caché
 
     .. note::
-        **Why not use splade-v3?**
+        **¿Por qué no usar splade-v3?**
 
-        The newer ``naver/splade-v3`` model is gated (requires access approval).
-        We use ``naver/splade-cocondenser-ensembledistil`` instead.
+        El modelo más reciente ``naver/splade-v3`` está bloqueado (requiere aprobación de acceso).
+        Usamos ``naver/splade-cocondenser-ensembledistil`` en su lugar.
 
-        **To use splade-v3 (if you have access):**
+        **Para usar splade-v3 (si tienes acceso):**
 
-        1. Request access at https://huggingface.co/naver/splade-v3
-        2. Get your Hugging Face token from https://huggingface.co/settings/tokens
-        3. Set environment variable:
+        1. Solicita acceso en https://huggingface.co/naver/splade-v3
+        2. Obtén tu token de Hugging Face en https://huggingface.co/settings/tokens
+        3. Establece la variable de entorno:
 
            .. code-block:: bash
 
                export HF_TOKEN="your_huggingface_token"
 
-        4. Or login programmatically:
+        4. O inicia sesión programáticamente:
 
            .. code-block:: python
 
                from huggingface_hub import login
                login(token="your_huggingface_token")
 
-        5. To use a custom SPLADE model, you can subclass this class and override
-           the model_name in ``__init__``, or create your own implementation
-           inheriting from ``SentenceTransformerFunctionBase`` and
-           ``SparseEmbeddingFunction``.
+        5. Para usar un modelo SPLADE personalizado, puedes crear una subclase y
+           sobreescribir model_name en ``__init__``, o crear tu propia implementación
+           heredando de ``SentenceTransformerFunctionBase`` y ``SparseEmbeddingFunction``.
 
     Args:
-        model_source (Literal["huggingface", "modelscope"], optional): Model source.
-            Defaults to ``"huggingface"``. ModelScope support may vary for SPLADE models.
-        device (Optional[str], optional): Device to run the model on.
-            Options: ``"cpu"``, ``"cuda"``, ``"mps"`` (for Apple Silicon), or ``None``
-            for automatic detection. Defaults to ``None``.
-        encoding_type (Literal["query", "document"], optional): Encoding type.
-            - ``"query"``: Optimize for search queries (default)
-            - ``"document"``: Optimize for indexed documents
-        **kwargs: Additional parameters (currently unused, for future extension).
+        model_source (Literal["huggingface", "modelscope"], optional): Fuente del modelo.
+            Por defecto ``"huggingface"``. El soporte de ModelScope puede variar para modelos SPLADE.
+        device (Optional[str], optional): Dispositivo en el que ejecutar el modelo.
+            Opciones: ``"cpu"``, ``"cuda"``, ``"mps"`` (para Apple Silicon) o ``None``
+            para detección automática. Por defecto ``None``.
+        encoding_type (Literal["query", "document"], optional): Tipo de codificación.
+            - ``"query"``: Optimizar para consultas de búsqueda (predeterminado)
+            - ``"document"``: Optimizar para documentos indexados
+        **kwargs: Parámetros adicionales (actualmente no usados, para extensión futura).
 
     Attributes:
-        model_name (str): Model identifier.
-        model_source (str): The model source being used.
-        device (str): The device the model is running on.
+        model_name (str): Identificador del modelo.
+        model_source (str): La fuente del modelo en uso.
+        device (str): El dispositivo en el que se ejecuta el modelo.
 
     Raises:
-        ValueError: If the model cannot be loaded or input is invalid.
-        TypeError: If input to ``embed()`` is not a string.
-        RuntimeError: If model inference fails.
+        ValueError: Si el modelo no se puede cargar o la entrada no es válida.
+        TypeError: Si la entrada de ``embed()`` no es una cadena.
+        RuntimeError: Si la inferencia del modelo falla.
 
     Note:
-        - Requires Python 3.10, 3.11, or 3.12
-        - Requires the ``sentence-transformers`` package:
+        - Requiere Python 3.10, 3.11 o 3.12
+        - Requiere el paquete ``sentence-transformers``:
           ``pip install sentence-transformers``
-        - First run downloads the model (~100MB) from Hugging Face
-        - Cache location: ``~/.cache/torch/sentence_transformers/``
-        - No API keys or authentication required
-        - Sparse vectors have ~30k dimensions but only ~100-200 non-zero values
-        - Best combined with dense embeddings for hybrid retrieval
+        - La primera ejecución descarga el modelo (~100MB) desde Hugging Face
+        - Ubicación de la caché: ``~/.cache/torch/sentence_transformers/``
+        - No se requieren claves de API ni autenticación
+        - Los vectores dispersos tienen ~30k dimensiones pero solo ~100-200 valores distintos de cero
+        - Se combina mejor con embeddings densos para recuperación híbrida
 
-        **SPLADE vs Dense Embeddings:**
+        **SPLADE vs Embeddings Densos:**
 
-        - **Dense**: Continuous semantic vectors, good for semantic similarity
-        - **Sparse**: Lexical keyword-based, interpretable, good for exact matching
-        - **Hybrid**: Combine both for best retrieval performance
+        - **Denso**: Vectores semánticos continuos, buenos para similitud semántica
+        - **Disperso**: Basado en palabras clave léxicas, interpretable, bueno para búsqueda exacta
+        - **Híbrido**: Combina ambos para el mejor rendimiento de recuperación
 
     Examples:
-        >>> # Memory-efficient: both instances share the same model (~200MB)
+        >>> # Eficiente en memoria: ambas instancias comparten el mismo modelo (~200MB)
         >>> from zvec.extension import DefaultLocalSparseEmbedding
         >>>
-        >>> # Query embedding
+        >>> # Embedding de consulta
         >>> query_emb = DefaultLocalSparseEmbedding(encoding_type="query")
         >>> query_vec = query_emb.embed("machine learning algorithms")
         >>> type(query_vec)
         <class 'dict'>
-        >>> len(query_vec)  # Only non-zero dimensions
+        >>> len(query_vec)  # Solo dimensiones distintas de cero
         156
 
-        >>> # Document embedding (shares model with query_emb)
+        >>> # Embedding de documento (comparte modelo con query_emb)
         >>> doc_emb = DefaultLocalSparseEmbedding(encoding_type="document")
         >>> doc_vec = doc_emb.embed("Machine learning is a subset of AI")
-        >>> # Total memory: ~200MB (not 400MB) thanks to model caching
+        >>> # Memoria total: ~200MB (no 400MB) gracias a la caché de modelos
 
-        >>> # Asymmetric retrieval example
+        >>> # Ejemplo de recuperación asimétrica
         >>> query_vec = query_emb.embed("what causes aging fast")
         >>> doc_vec = doc_emb.embed(
         ...     "UV-A light causes tanning, skin aging, and cataracts..."
         ... )
         >>>
-        >>> # Calculate similarity (dot product for sparse vectors)
+        >>> # Calcular similitud (producto escalar para vectores dispersos)
         >>> similarity = sum(
         ...     query_vec.get(k, 0) * doc_vec.get(k, 0)
         ...     for k in set(query_vec) | set(doc_vec)
         ... )
 
-        >>> # Batch processing
+        >>> # Procesamiento por lotes
         >>> queries = ["query 1", "query 2", "query 3"]
         >>> query_vecs = [query_emb.embed(q) for q in queries]
         >>>
         >>> documents = ["doc 1", "doc 2", "doc 3"]
         >>> doc_vecs = [doc_emb.embed(d) for d in documents]
 
-        >>> # Inspecting sparse dimensions (output is sorted by indices)
+        >>> # Inspeccionar dimensiones dispersas (la salida está ordenada por índices)
         >>> query_vec = query_emb.embed("machine learning")
-        >>> list(query_vec.items())[:5]  # First 5 dimensions (by index)
+        >>> list(query_vec.items())[:5]  # Primeras 5 dimensiones (por índice)
         [(10, 0.45), (23, 0.87), (56, 0.32), (89, 1.12), (120, 0.65)]
         >>>
-        >>> # Sort by weight to find most important terms
+        >>> # Ordenar por peso para encontrar los términos más importantes
         >>> sorted_by_weight = sorted(query_vec.items(), key=lambda x: x[1], reverse=True)
-        >>> top_5 = sorted_by_weight[:5]  # Top 5 most important terms
+        >>> top_5 = sorted_by_weight[:5]  # Top 5 términos más importantes
         >>> top_5
         [(1023, 1.45), (245, 1.23), (8901, 0.98), (5678, 0.87), (12034, 0.76)]
 
-        >>> # Using GPU for faster inference
+        >>> # Usar GPU para inferencia más rápida
         >>> sparse_emb = DefaultLocalSparseEmbedding(device="cuda")
         >>> vector = sparse_emb.embed("natural language processing")
 
-        >>> # Hybrid retrieval example (combining dense + sparse)
+        >>> # Ejemplo de recuperación híbrida (combinando denso + disperso)
         >>> from zvec.extension import DefaultDenseEmbedding
         >>> dense_emb = DefaultDenseEmbedding()
         >>> sparse_emb = DefaultLocalSparseEmbedding()
@@ -464,33 +475,33 @@ class DefaultLocalSparseEmbedding(
         >>> dense_vec = dense_emb.embed(query)   # [0.1, -0.3, 0.5, ...]
         >>> sparse_vec = sparse_emb.embed(query)  # {12: 0.8, 45: 1.2, ...}
 
-        >>> # Error handling
+        >>> # Manejo de errores
         >>> try:
-        ...     sparse_emb.embed("")  # Empty string
+        ...     sparse_emb.embed("")  # Cadena vacía
         ... except ValueError as e:
         ...     print(f"Error: {e}")
         Error: Input text cannot be empty or whitespace only
 
-        >>> # Cache management
-        >>> # Check cache status
+        >>> # Gestión de caché
+        >>> # Verificar estado de la caché
         >>> info = DefaultLocalSparseEmbedding.get_cache_info()
         >>> print(f"Cached models: {info['cached_models']}")
         Cached models: 1
         >>>
-        >>> # Clear cache to free memory
+        >>> # Limpiar caché para liberar memoria
         >>> DefaultLocalSparseEmbedding.clear_cache()
         >>> info = DefaultLocalSparseEmbedding.get_cache_info()
         >>> print(f"Cached models: {info['cached_models']}")
         Cached models: 0
         >>>
-        >>> # Remove specific model from cache
-        >>> query_emb = DefaultLocalSparseEmbedding()  # Creates CPU model
-        >>> cuda_emb = DefaultLocalSparseEmbedding(device="cuda")  # Creates CUDA model
+        >>> # Eliminar modelo específico de la caché
+        >>> query_emb = DefaultLocalSparseEmbedding()  # Crea modelo CPU
+        >>> cuda_emb = DefaultLocalSparseEmbedding(device="cuda")  # Crea modelo CUDA
         >>> info = DefaultLocalSparseEmbedding.get_cache_info()
         >>> print(f"Cached models: {info['cached_models']}")
         Cached models: 2
         >>>
-        >>> # Remove only CPU model
+        >>> # Eliminar solo el modelo CPU
         >>> removed = DefaultLocalSparseEmbedding.remove_from_cache(device=None)
         >>> print(f"Removed: {removed}")
         True
@@ -499,47 +510,47 @@ class DefaultLocalSparseEmbedding(
         Cached models: 1
 
     See Also:
-        - ``SparseEmbeddingFunction``: Base class for sparse embeddings
-        - ``DefaultDenseEmbedding``: Dense embedding with all-MiniLM-L6-v2
-        - ``QwenDenseEmbedding``: Alternative using Qwen API
+        - ``SparseEmbeddingFunction``: Clase base para embeddings dispersos
+        - ``DefaultDenseEmbedding``: Embedding denso con all-MiniLM-L6-v2
+        - ``QwenDenseEmbedding``: Alternativa usando la API de Qwen
 
     References:
         - SPLADE Paper: https://arxiv.org/abs/2109.10086
         - Model: https://huggingface.co/naver/splade-cocondenser-ensembledistil
     """
 
-    # Class-level model cache: {(model_name, model_source, device): model}
-    # Shared across all DefaultLocalSparseEmbedding instances to save memory
+    # Caché de modelos a nivel de clase: {(model_name, model_source, device): model}
+    # Compartida entre todas las instancias de DefaultLocalSparseEmbedding para ahorrar memoria
     _model_cache: ClassVar[dict] = {}
 
     @classmethod
     def clear_cache(cls) -> None:
-        """Clear all cached SPLADE models from memory.
+        """Limpia todos los modelos SPLADE de la caché de memoria.
 
-        This is useful for:
-        - Freeing memory when models are no longer needed
-        - Forcing a fresh model reload
-        - Testing and debugging
+        Esto es útil para:
+        - Liberar memoria cuando los modelos ya no son necesarios
+        - Forzar una recarga del modelo
+        - Pruebas y depuración
                 Examples:
-            >>> # Clear cache to free memory
+            >>> # Limpiar caché para liberar memoria
             >>> DefaultLocalSparseEmbedding.clear_cache()
 
-            >>> # Or in tests to ensure fresh model loading
+            >>> # O en pruebas para asegurar una carga fresca del modelo
             >>> def test_something():
             ...     DefaultLocalSparseEmbedding.clear_cache()
             ...     emb = DefaultLocalSparseEmbedding()
-            ...     # Test with fresh model
+            ...     # Prueba con modelo recién cargado
         """
         cls._model_cache.clear()
 
     @classmethod
     def get_cache_info(cls) -> dict:
-        """Get information about currently cached models.
+        """Obtiene información sobre los modelos actualmente en caché.
 
         Returns:
-            dict: Dictionary with cache statistics:
-                - cached_models (int): Number of cached model instances
-                - cache_keys (list): List of cache keys (model_name, model_source, device)
+            dict: Diccionario con estadísticas de la caché:
+                - cached_models (int): Número de instancias de modelos en caché
+                - cache_keys (list): Lista de claves de caché (model_name, model_source, device)
 
         Examples:
             >>> info = DefaultLocalSparseEmbedding.get_cache_info()
@@ -558,23 +569,23 @@ class DefaultLocalSparseEmbedding(
     def remove_from_cache(
         cls, model_source: str = "huggingface", device: Optional[str] = None
     ) -> bool:
-        """Remove a specific model from cache.
+        """Elimina un modelo específico de la caché.
 
         Args:
-            model_source (str): Model source ("huggingface" or "modelscope").
-                Defaults to "huggingface".
-            device (Optional[str]): Device identifier. Defaults to None.
+            model_source (str): Fuente del modelo ("huggingface" o "modelscope").
+                Por defecto "huggingface".
+            device (Optional[str]): Identificador del dispositivo. Por defecto None.
 
         Returns:
-            bool: True if model was found and removed, False otherwise.
+            bool: True si el modelo fue encontrado y eliminado, False en caso contrario.
 
         Examples:
-            >>> # Remove CPU model from cache
+            >>> # Eliminar modelo CPU de la caché
             >>> removed = DefaultLocalSparseEmbedding.remove_from_cache()
             >>> print(f"Removed: {removed}")
             True
 
-            >>> # Remove CUDA model from cache
+            >>> # Eliminar modelo CUDA de la caché
             >>> removed = DefaultLocalSparseEmbedding.remove_from_cache(device="cuda")
             >>> print(f"Removed: {removed}")
             True
@@ -592,116 +603,128 @@ class DefaultLocalSparseEmbedding(
         model_source: Literal["huggingface", "modelscope"] = "huggingface",
         device: Optional[str] = None,
         encoding_type: Literal["query", "document"] = "query",
+        trust_remote_code: bool = False,
         **kwargs,
     ):
-        """Initialize with SPLADE model.
+        """Inicializa con el modelo SPLADE.
 
         Args:
-            model_source (Literal["huggingface", "modelscope"]): Model source.
-                Defaults to "huggingface".
-            device (Optional[str]): Target device ("cpu", "cuda", "mps", or None).
-                Defaults to None (automatic detection).
-            encoding_type (Literal["query", "document"]): Encoding type for embeddings.
-                - "query": Optimize for search queries (default)
-                - "document": Optimize for indexed documents
-                This distinction is important for asymmetric retrieval tasks.
-            **kwargs: Additional parameters (reserved for future use).
+            model_source (Literal["huggingface", "modelscope"]): Fuente del modelo.
+                Por defecto "huggingface".
+            device (Optional[str]): Dispositivo destino ("cpu", "cuda", "mps" o None).
+                Por defecto None (detección automática).
+            encoding_type (Literal["query", "document"]): Tipo de codificación para embeddings.
+                - "query": Optimizar para consultas de búsqueda (predeterminado)
+                - "document": Optimizar para documentos indexados
+                Esta distinción es importante para tareas de recuperación asimétrica.
+            trust_remote_code (bool): Si se permite la ejecución de código personalizado
+                del modelo desde el repositorio. Por defecto ``False``.
+
+                .. warning::
+                    Establecer esto en ``True`` permite que código Python arbitrario de un
+                    repositorio de modelos descargado se ejecute en tu máquina. Solo
+                    actívalo para modelos en los que confíes explícitamente.
+            **kwargs: Parámetros adicionales (reservados para uso futuro).
 
         Raises:
-            ImportError: If sentence-transformers is not installed.
-            ValueError: If model cannot be loaded.
+            ImportError: Si sentence-transformers no está instalado.
+            ValueError: Si el modelo no se puede cargar.
 
         Note:
-            Multiple instances with the same (model_source, device) configuration
-            will share the same underlying model to save memory. Different
-            instances can use different encoding_type settings while sharing
-            the model.
+            Las instancias con la misma configuración (model_source, device) compartirán
+            el mismo modelo subyacente para ahorrar memoria. Las distintas instancias
+            pueden usar diferentes configuraciones de encoding_type compartiendo el modelo.
 
-            **Model Selection:**
+            **Selección del modelo:**
 
-            Uses ``naver/splade-cocondenser-ensembledistil`` instead of the newer
-            ``naver/splade-v3`` because splade-v3 is a gated model requiring
-            Hugging Face authentication. The cocondenser-ensembledistil variant:
+            Usa ``naver/splade-cocondenser-ensembledistil`` en lugar del más reciente
+            ``naver/splade-v3`` porque splade-v3 es un modelo bloqueado que requiere
+            autenticación de Hugging Face. La variante cocondenser-ensembledistil:
 
-            - Does not require authentication or API tokens
-            - Is immediately available for all users
-            - Provides comparable retrieval performance (~2% difference)
-            - Avoids "Access to model is restricted" errors
+            - No requiere autenticación ni tokens de API
+            - Está disponible inmediatamente para todos los usuarios
+            - Ofrece un rendimiento de recuperación comparable (~2% de diferencia)
+            - Evita los errores "Access to model is restricted"
 
-            If you need splade-v3 and have obtained access, you can subclass
-            this class and override the model_name parameter.
+            Si necesitas splade-v3 y tienes acceso, puedes crear una subclase
+            y sobreescribir el parámetro model_name.
 
         Examples:
-            >>> # Both instances share the same model (saves memory)
+            >>> # Ambas instancias comparten el mismo modelo (ahorra memoria)
             >>> query_emb = DefaultLocalSparseEmbedding(encoding_type="query")
             >>> doc_emb = DefaultLocalSparseEmbedding(encoding_type="document")
-            >>> # Only one model is loaded in memory
+            >>> # Solo un modelo está cargado en memoria
         """
-        # Use publicly available SPLADE model (no gated access required)
-        # Note: naver/splade-v3 requires authentication, so we use the
-        # cocondenser-ensembledistil variant which is publicly accessible
+        # Usar el modelo SPLADE de acceso público (no requiere acceso bloqueado)
+        # Nota: naver/splade-v3 requiere autenticación, por eso usamos la
+        # variante cocondenser-ensembledistil, que es de acceso público
         model_name = "naver/splade-cocondenser-ensembledistil"
 
-        # Initialize base class for model loading
+        # Inicializar la clase base para la carga del modelo
         SentenceTransformerFunctionBase.__init__(
-            self, model_name=model_name, model_source=model_source, device=device
+            self,
+            model_name=model_name,
+            model_source=model_source,
+            device=device,
+            trust_remote_code=trust_remote_code,
         )
 
         self._encoding_type = encoding_type
         self._extra_params = kwargs
 
-        # Create cache key for this model configuration
+        # Crear clave de caché para esta configuración de modelo
         self._cache_key = (model_name, model_source, device)
 
-        # Load model to ensure it's available (will use cache if exists)
+        # Cargar el modelo para asegurarse de que está disponible (usa caché si existe)
         self._get_model()
 
     @property
     def extra_params(self) -> dict:
-        """dict: Extra parameters for model-specific customization."""
+        """dict: Parámetros adicionales para la personalización específica del modelo."""
         return self._extra_params
 
     def __call__(self, input: str) -> SparseVectorType:
-        """Make the embedding function callable."""
+        """Hace que la función de embedding sea invocable."""
         return self.embed(input)
 
     def embed(self, input: str) -> SparseVectorType:
-        """Generate sparse embedding vector for the input text.
+        """Genera el vector de embedding disperso para el texto de entrada.
 
-        This method uses the SPLADE model to convert input text into a sparse
-        vector representation. The result is a dictionary where keys are dimension
-        indices and values are importance weights (only non-zero values included).
+        Este método usa el modelo SPLADE para convertir el texto de entrada en una
+        representación vectorial dispersa. El resultado es un diccionario donde las
+        claves son índices de dimensión y los valores son pesos de importancia
+        (solo se incluyen valores distintos de cero).
 
-        The embedding is optimized based on the ``encoding_type`` specified during
-        initialization: "query" for search queries or "document" for indexed content.
+        El embedding se optimiza según el ``encoding_type`` especificado durante la
+        inicialización: "query" para consultas de búsqueda o "document" para contenido indexado.
 
         Args:
-            input (str): Input text string to embed. Must be non-empty after
-                stripping whitespace.
+            input (str): Cadena de texto de entrada a embeber. Debe ser no vacía tras
+                eliminar espacios.
 
         Returns:
-            SparseVectorType: A dictionary mapping dimension index to weight.
-                Only non-zero dimensions are included. The dictionary is sorted
-                by indices (keys) in ascending order for consistent output.
-                Example: ``{10: 0.5, 245: 0.8, 1023: 1.2, 5678: 0.5}``
+            SparseVectorType: Un diccionario que mapea índice de dimensión a peso.
+                Solo se incluyen dimensiones distintas de cero. El diccionario está ordenado
+                por índices (claves) de forma ascendente para una salida consistente.
+                Ejemplo: ``{10: 0.5, 245: 0.8, 1023: 1.2, 5678: 0.5}``
 
         Raises:
-            TypeError: If ``input`` is not a string.
-            ValueError: If input is empty or whitespace-only.
-            RuntimeError: If model inference fails.
+            TypeError: Si ``input`` no es una cadena.
+            ValueError: Si la entrada está vacía o contiene solo espacios en blanco.
+            RuntimeError: Si la inferencia del modelo falla.
 
         Examples:
-            >>> # Query embedding
+            >>> # Embedding de consulta
             >>> query_emb = DefaultLocalSparseEmbedding(encoding_type="query")
             >>> query_vec = query_emb.embed("machine learning")
             >>> isinstance(query_vec, dict)
             True
 
         Note:
-            - First call may be slower due to model loading
-            - Subsequent calls are much faster as the model stays in memory
-            - GPU acceleration provides significant speedup
-            - Sparse vectors are memory-efficient (only store non-zero values)
+            - La primera llamada puede ser más lenta por la carga del modelo
+            - Las llamadas siguientes son mucho más rápidas ya que el modelo permanece en memoria
+            - La aceleración GPU proporciona una mejora significativa de velocidad
+            - Los vectores dispersos son eficientes en memoria (solo almacenan valores distintos de cero)
         """
         if not isinstance(input, str):
             raise TypeError(f"Expected 'input' to be str, got {type(input).__name__}")
@@ -713,23 +736,23 @@ class DefaultLocalSparseEmbedding(
         try:
             model = self._get_model()
 
-            # Use appropriate encoding method based on type
+            # Usar el método de codificación adecuado según el tipo
             if self._encoding_type == "document" and hasattr(model, "encode_document"):
-                # Use document encoding
+                # Usar codificación de documento
                 sparse_matrix = model.encode_document([input])
             elif hasattr(model, "encode_query"):
-                # Use query encoding (default)
+                # Usar codificación de consulta (predeterminado)
                 sparse_matrix = model.encode_query([input])
             else:
-                # Fallback: manual implementation for older sentence-transformers
+                # Alternativa: implementación manual para sentence-transformers más antiguos
                 return self._manual_sparse_encode(input)
 
-            # Convert sparse matrix to dictionary
-            # SPLADE returns shape [1, vocab_size] for single input
+            # Convertir la matriz dispersa a diccionario
+            # SPLADE devuelve forma [1, vocab_size] para una sola entrada
 
-            # Check if it's a sparse matrix (duck typing - has toarray method)
+            # Verificar si es una matriz dispersa (duck typing - tiene método toarray)
             if hasattr(sparse_matrix, "toarray"):
-                # Sparse matrix (CSR/CSC/etc.) - convert to dense array
+                # Matriz dispersa (CSR/CSC/etc.) - convertir a array denso
                 sparse_array = sparse_matrix[0].toarray().flatten()
                 sparse_dict = {
                     int(idx): float(val)
@@ -737,7 +760,7 @@ class DefaultLocalSparseEmbedding(
                     if val > 0
                 }
             else:
-                # Dense array format (numpy array or similar)
+                # Formato de array denso (array numpy o similar)
                 if isinstance(sparse_matrix, np.ndarray):
                     sparse_array = sparse_matrix[0]
                 else:
@@ -749,7 +772,7 @@ class DefaultLocalSparseEmbedding(
                     if val > 0
                 }
 
-            # Sort by indices (keys) to ensure consistent ordering
+            # Ordenar por índices (claves) para garantizar un orden consistente
             return dict(sorted(sparse_dict.items()))
 
         except Exception as e:
@@ -758,82 +781,82 @@ class DefaultLocalSparseEmbedding(
             raise RuntimeError(f"Failed to generate sparse embedding: {e!s}") from e
 
     def _manual_sparse_encode(self, input: str) -> SparseVectorType:
-        """Fallback manual SPLADE encoding for older sentence-transformers.
+        """Codificación SPLADE manual de reserva para sentence-transformers más antiguos.
 
         Args:
-            input (str): Input text to encode.
+            input (str): Texto de entrada a codificar.
 
         Returns:
-            SparseVectorType: Sparse vector as dictionary.
+            SparseVectorType: Vector disperso como diccionario.
         """
         import torch
 
         model = self._get_model()
 
-        # Tokenize input
+        # Tokenizar la entrada
         features = model.tokenize([input])
 
-        # Move to correct device
+        # Mover al dispositivo correcto
         features = {k: v.to(model.device) for k, v in features.items()}
 
-        # Forward pass with no gradient
+        # Paso hacia adelante sin gradiente
         with torch.no_grad():
             embeddings = model.forward(features)
 
-            # Get logits from model output
-            # SPLADE models typically output 'token_embeddings'
+            # Obtener logits de la salida del modelo
+            # Los modelos SPLADE típicamente generan 'token_embeddings'
             if isinstance(embeddings, dict) and "token_embeddings" in embeddings:
-                logits = embeddings["token_embeddings"][0]  # First batch item
+                logits = embeddings["token_embeddings"][0]  # Primer elemento del lote
             elif hasattr(embeddings, "token_embeddings"):
                 logits = embeddings.token_embeddings[0]
-            # Fallback: try to get first value
+            # Alternativa: intentar obtener el primer valor
             elif isinstance(embeddings, dict):
                 logits = next(iter(embeddings.values()))[0]
             else:
                 logits = embeddings[0]
 
-            # Apply SPLADE activation: log(1 + relu(x))
+            # Aplicar activación SPLADE: log(1 + relu(x))
             relu_log = torch.log(1 + torch.relu(logits))
 
-            # Max pooling over token dimension (reduce to vocab size)
+            # Pooling máximo sobre la dimensión del token (reducir a tamaño de vocabulario)
             if relu_log.dim() > 1:
                 sparse_vec, _ = torch.max(relu_log, dim=0)
             else:
                 sparse_vec = relu_log
 
-            # Convert to sparse dictionary (only non-zero values)
+            # Convertir a diccionario disperso (solo valores distintos de cero)
             sparse_vec_np = sparse_vec.cpu().numpy()
             sparse_dict = {
                 int(idx): float(val) for idx, val in enumerate(sparse_vec_np) if val > 0
             }
 
-            # Sort by indices (keys) to ensure consistent ordering
+            # Ordenar por índices (claves) para garantizar un orden consistente
             return dict(sorted(sparse_dict.items()))
 
     def _get_model(self):
-        """Load or retrieve the SPLADE model from class-level cache.
+        """Carga o recupera el modelo SPLADE desde la caché a nivel de clase.
 
         Returns:
-            SentenceTransformer: The loaded SPLADE model instance.
+            SentenceTransformer: La instancia del modelo SPLADE cargada.
 
         Raises:
-            ImportError: If required packages are not installed.
-            ValueError: If model cannot be loaded.
+            ImportError: Si los paquetes requeridos no están instalados.
+            ValueError: Si el modelo no se puede cargar.
 
         Note:
-            Models are cached at class level and shared across all instances
-            with the same (model_name, model_source, device) configuration.
-            This allows memory-efficient usage when creating multiple instances
-            with different encoding_type settings.
+            Los modelos se almacenan en caché a nivel de clase y se comparten entre todas
+            las instancias con la misma configuración (model_name, model_source, device).
+            Esto permite un uso eficiente de memoria al crear múltiples instancias
+            con diferentes configuraciones de encoding_type.
         """
-        # Check class-level cache first
+        # Verificar primero la caché a nivel de clase
         if self._cache_key in self._model_cache:
             return self._model_cache[self._cache_key]
 
-        # Use parent class method to load model
+        # Usar el método de la clase padre para cargar el modelo
         model = super()._get_model()
 
-        # Cache the model at class level
+        # Almacenar el modelo en la caché a nivel de clase
         self._model_cache[self._cache_key] = model
 
         return model
