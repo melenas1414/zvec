@@ -157,6 +157,7 @@ class DefaultLocalDenseEmbedding(
         device: Optional[str] = None,
         normalize_embeddings: bool = True,
         batch_size: int = 32,
+        trust_remote_code: bool = False,
         **kwargs,
     ):
         """Initialize with all-MiniLM-L6-v2 model.
@@ -169,6 +170,13 @@ class DefaultLocalDenseEmbedding(
             normalize_embeddings (bool): Whether to L2-normalize output vectors.
                 Defaults to True.
             batch_size (int): Batch size for encoding. Defaults to 32.
+            trust_remote_code (bool): Whether to allow execution of custom model
+                code from the repository. Defaults to ``False``.
+
+                .. warning::
+                    Setting this to ``True`` allows arbitrary Python code from a
+                    downloaded model repository to run on your machine.  Only
+                    enable it for models you explicitly trust.
             **kwargs: Additional parameters for future extension.
 
         Raises:
@@ -184,7 +192,11 @@ class DefaultLocalDenseEmbedding(
 
         # Initialize base class for model loading
         SentenceTransformerFunctionBase.__init__(
-            self, model_name=model_name, model_source=model_source, device=device
+            self,
+            model_name=model_name,
+            model_source=model_source,
+            device=device,
+            trust_remote_code=trust_remote_code,
         )
 
         self._normalize_embeddings = normalize_embeddings
@@ -592,6 +604,7 @@ class DefaultLocalSparseEmbedding(
         model_source: Literal["huggingface", "modelscope"] = "huggingface",
         device: Optional[str] = None,
         encoding_type: Literal["query", "document"] = "query",
+        trust_remote_code: bool = False,
         **kwargs,
     ):
         """Initialize with SPLADE model.
@@ -605,6 +618,13 @@ class DefaultLocalSparseEmbedding(
                 - "query": Optimize for search queries (default)
                 - "document": Optimize for indexed documents
                 This distinction is important for asymmetric retrieval tasks.
+            trust_remote_code (bool): Whether to allow execution of custom model
+                code from the repository. Defaults to ``False``.
+
+                .. warning::
+                    Setting this to ``True`` allows arbitrary Python code from a
+                    downloaded model repository to run on your machine.  Only
+                    enable it for models you explicitly trust.
             **kwargs: Additional parameters (reserved for future use).
 
         Raises:
@@ -644,7 +664,11 @@ class DefaultLocalSparseEmbedding(
 
         # Initialize base class for model loading
         SentenceTransformerFunctionBase.__init__(
-            self, model_name=model_name, model_source=model_source, device=device
+            self,
+            model_name=model_name,
+            model_source=model_source,
+            device=device,
+            trust_remote_code=trust_remote_code,
         )
 
         self._encoding_type = encoding_type

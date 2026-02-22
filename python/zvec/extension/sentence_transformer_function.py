@@ -35,11 +35,15 @@ class SentenceTransformerFunctionBase:
         model_name (str): Model identifier or local path.
         model_source (Literal["huggingface", "modelscope"]): Model source.
         device (Optional[str]): Device to run the model on.
+        trust_remote_code (bool): Whether to allow execution of custom model code
+            from the repository. Defaults to ``False``.
 
     Note:
         - This is an internal base class for code reuse
         - Subclasses should inherit from appropriate Protocol (Dense/Sparse)
         - Provides model loading and management functionality
+        - ``trust_remote_code=True`` allows arbitrary Python code from a
+          downloaded model repository to execute; only enable for trusted models
     """
 
     def __init__(
@@ -47,6 +51,7 @@ class SentenceTransformerFunctionBase:
         model_name: str,
         model_source: Literal["huggingface", "modelscope"] = "huggingface",
         device: Optional[str] = None,
+        trust_remote_code: bool = False,
     ):
         """Initialize the base Sentence Transformer functionality.
 
@@ -54,6 +59,13 @@ class SentenceTransformerFunctionBase:
             model_name (str): Model identifier or local path.
             model_source (Literal["huggingface", "modelscope"]): Model source.
             device (Optional[str]): Device to run the model on.
+            trust_remote_code (bool): Whether to allow execution of custom model
+                code from the repository. Defaults to ``False``.
+
+                .. warning::
+                    Setting this to ``True`` allows arbitrary Python code from a
+                    downloaded model repository to run on your machine.  Only
+                    enable it for models you explicitly trust.
 
         Raises:
             ValueError: If model_source is invalid.
@@ -68,6 +80,7 @@ class SentenceTransformerFunctionBase:
         self._model_name = model_name
         self._model_source = model_source
         self._device = device
+        self._trust_remote_code = trust_remote_code
         self._model = None
 
     @property
@@ -116,12 +129,12 @@ class SentenceTransformerFunctionBase:
 
                 # Load from local path
                 self._model = sentence_transformers.SentenceTransformer(
-                    model_dir, device=self._device, trust_remote_code=True
+                    model_dir, device=self._device, trust_remote_code=self._trust_remote_code
                 )
             else:
                 # Load from Hugging Face (default)
                 self._model = sentence_transformers.SentenceTransformer(
-                    self._model_name, device=self._device, trust_remote_code=True
+                    self._model_name, device=self._device, trust_remote_code=self._trust_remote_code
                 )
 
             return self._model
